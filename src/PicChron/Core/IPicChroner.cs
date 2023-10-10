@@ -5,7 +5,6 @@
 		event EventHandler<Exception>? OnError;
 		event EventHandler<int>? PercentageCompleted;
 		event EventHandler<string>? SortCompleted;
-
-		void StartSorting();
+		Task StartSorting();
 	}
 }

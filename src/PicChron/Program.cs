@@ -14,12 +14,12 @@ namespace PicChron
 				  .MapResult(
 					(options) =>
 					{
-						return RunAndReturnExitCode(options);
+						return RunAndReturnExitCode(options).GetAwaiter().GetResult();
 					},
 					_ => 1);
 		}
 
-		private static int RunAndReturnExitCode(PicChronOptions options)
+		private async static Task<int> RunAndReturnExitCode(PicChronOptions options)
 		{
 
 			if (options.DestinationPath == String.Empty)
@@ -50,7 +50,7 @@ namespace PicChron
 
 			if (Console.ReadKey().Key == ConsoleKey.Y)
 			{
-				picChroner.StartSorting();
+				await picChroner.StartSorting();
 				return 1;
 			}
 			else
@@ -77,7 +77,7 @@ namespace PicChron
 		private static void Sorter_SortCompleted(object? sender, string message)
 		{
 			Console.WriteLine(message);
-			if(unprocessedFiles.Count() > 0)
+			if (unprocessedFiles.Count() > 0)
 			{
 				Console.WriteLine();
 				Console.WriteLine("List of unprocessed files:");

@@ -28,7 +28,7 @@ namespace PicChron.Application
 			_destinationPathProvider = new DestinationPathProvider(options.DestinationPath);
 		}
 
-		public async void StartSorting()
+		public async Task StartSorting()
 		{
 			try
 			{
@@ -47,17 +47,19 @@ namespace PicChron.Application
 
 				foreach (var file in files)
 				{
-					var dateTime = await _exifDateTimeProvider.GetDateTime(file.FullName) ?? await _regexDateTimeProvider.GetDateTime(file.FullName);
-
-					if (dateTime is null)
-					{
-						continue;
-					}
-
-					var (destDir, destPath) = _destinationPathProvider.GetDestinationPaths(file, dateTime.Value);
-
 					try
 					{
+						var exifDateTime = await (_exifDateTimeProvider.GetDateTime(file.FullName) ?? Task.FromResult<DateTime?>(null));
+						var regexDateTime = await (_regexDateTimeProvider.GetDateTime(file.FullName) ?? Task.FromResult<DateTime?>(null));
+
+						var dateTime = exifDateTime ?? regexDateTime;
+
+						if (dateTime is null)
+						{
+							continue;
+						}
+
+						var (destDir, destPath) = _destinationPathProvider.GetDestinationPaths(file, dateTime.Value);
 						CreateDirectoryIfNotExists(destDir);
 						ProcessFile(destPath, file, (DateTime)dateTime);
 						MarkProgress();

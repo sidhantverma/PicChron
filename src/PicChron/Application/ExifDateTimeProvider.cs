@@ -24,10 +24,7 @@ namespace PicChron.Application
 
 				return _dateTimeValidator.IsValidYear((DateTime)dateTime) ? dateTime : null;
 			}
-			catch (NotValidImageFileException)
-			{ 
-			}
-			catch (Exception)
+			catch
 			{
 			}
 
