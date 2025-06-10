@@ -98,24 +98,31 @@ namespace PicChron.Application
 			}
 		}
 
-		private void ProcessFile(string destPath, FileInfo file, DateTime dateTime)
-		{
-			switch (_picChronOptions.FileTransferMode)
-			{
-				case FileTransferMode.Move:
-					file.MoveTo(destPath);
-					break;
-				case FileTransferMode.Copy:
-					file.CopyTo(destPath);
-					break;
-			}
+                private void ProcessFile(string destPath, FileInfo file, DateTime dateTime)
+                {
+                        FileInfo targetFile;
 
-			if(_picChronOptions.RewriteFileAccessAndWriteTime)
-			{
-				file.LastAccessTime = dateTime;
-				file.LastWriteTime = dateTime;
-			}
-		}
+                        switch (_picChronOptions.FileTransferMode)
+                        {
+                                case FileTransferMode.Move:
+                                        file.MoveTo(destPath);
+                                        targetFile = file;
+                                        break;
+                                case FileTransferMode.Copy:
+                                        targetFile = file.CopyTo(destPath);
+                                        break;
+                                default:
+                                        // Should not reach here but assign to avoid uninitialized variable warning
+                                        targetFile = file;
+                                        break;
+                        }
+
+                        if(_picChronOptions.RewriteFileAccessAndWriteTime)
+                        {
+                                targetFile.LastAccessTime = dateTime;
+                                targetFile.LastWriteTime = dateTime;
+                        }
+                }
 
 		private string GetCompletedMsg()
 		{
