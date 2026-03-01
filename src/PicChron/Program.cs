@@ -44,6 +44,8 @@ namespace PicChron
 			Console.WriteLine($"{nameof(options.FileTransferMode)}: {options.FileTransferMode}");
 			Console.WriteLine($"{nameof(options.ScanType)}: {options.ScanType}");
 			Console.WriteLine($"{nameof(options.RewriteFileAccessAndWriteTime)}: {options.RewriteFileAccessAndWriteTime}");
+			// Supported file types:
+			Console.WriteLine($"Supported file types: {string.Join(", ", picChroner._validMediaFileExtensions)}");
 
 			Console.Write("Press Y to start or press any other key to cancel.");
 			Console.WriteLine();

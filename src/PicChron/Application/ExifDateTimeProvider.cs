@@ -1,4 +1,5 @@
-﻿using ExifLibrary;
+﻿using MetadataExtractor;
+using MetadataExtractor.Formats.Exif;
 using PicChron.Core;
 
 namespace PicChron.Application
@@ -6,29 +7,60 @@ namespace PicChron.Application
 	public class ExifDateTimeProvider : IDateTimeProvider
 	{
 		private readonly IDateTimeValidator _dateTimeValidator = new DateTimeValidator();
+		
 		public async Task<DateTime?> GetDateTime(string filePath)
+		{
+			// All image formats (including HEIC) use MetadataExtractor
+			return await GetDateTimeFromExif(filePath);
+		}
+
+		private async Task<DateTime?> GetDateTimeFromExif(string filePath)
 		{
 			try
 			{
-				var exifImageFile = await Task.FromResult(ImageFile.FromFile(filePath));
+				// For most image formats, try MetadataExtractor first (more robust)
+				var directories = await Task.Run(() => ImageMetadataReader.ReadMetadata(filePath));
 
-				DateTime? dateTime = 
-					exifImageFile.Properties.Get<ExifDateTime>(ExifTag.DateTime) ??
-					exifImageFile.Properties.Get<ExifDateTime>(ExifTag.DateTimeOriginal) ??
-					exifImageFile.Properties.Get<ExifDateTime>(ExifTag.DateTimeDigitized) ?? null;
-
-				if(dateTime is null)
+				var exifDir = directories.OfType<ExifIfd0Directory>().FirstOrDefault();
+				if (exifDir != null)
 				{
-					return null;
+					// Try DateTime tags in order of preference
+					if (exifDir.TryGetDateTime(ExifDirectoryBase.TagDateTime, out var dateTime) &&
+						_dateTimeValidator.IsValidYear(dateTime))
+					{
+						return dateTime;
+					}
+
+					if (exifDir.TryGetDateTime(ExifDirectoryBase.TagDateTimeOriginal, out var dateTimeOriginal) &&
+						_dateTimeValidator.IsValidYear(dateTimeOriginal))
+					{
+						return dateTimeOriginal;
+					}
+
+					if (exifDir.TryGetDateTime(ExifDirectoryBase.TagDateTimeDigitized, out var dateTimeDigitized) &&
+						_dateTimeValidator.IsValidYear(dateTimeDigitized))
+					{
+						return dateTimeDigitized;
+					}
 				}
 
-				return _dateTimeValidator.IsValidYear((DateTime)dateTime) ? dateTime : null;
+				// Also check SubIfd
+				var subIfdDir = directories.OfType<ExifSubIfdDirectory>().FirstOrDefault();
+				if (subIfdDir != null)
+				{
+					if (subIfdDir.TryGetDateTime(ExifDirectoryBase.TagDateTimeOriginal, out var dateTimeOriginal) &&
+						_dateTimeValidator.IsValidYear(dateTimeOriginal))
+					{
+						return dateTimeOriginal;
+					}
+				}
+
+				return null;
 			}
 			catch
 			{
+				return null;
 			}
-
-			return null;
 		}
 	}
 }

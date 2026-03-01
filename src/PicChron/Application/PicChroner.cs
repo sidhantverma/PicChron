@@ -7,6 +7,7 @@ namespace PicChron.Application
 	{
 		private readonly IDateTimeProvider _exifDateTimeProvider = new ExifDateTimeProvider();
 		private readonly IDateTimeProvider _regexDateTimeProvider = new RegexDateTimeProvider();
+		private readonly IDateTimeProvider _mediaDateTimeProvider = new MediaDateTimeProvider();
 		
 		private readonly IDestinationPathProvider _destinationPathProvider;
 		private readonly PicChronOptions _picChronOptions;
@@ -14,8 +15,8 @@ namespace PicChron.Application
 		private int _totalFiles;
 		private int _filesProcessed;
 
-		private string[] _validMediaFileExtensions =
-			new string[] { ".jpg", ".jpeg", ".tiff", ".png", ".gif", ".mp4", ".3gp", ".mov", ".avi", ".webp" };
+		public string[] _validMediaFileExtensions =
+			new string[] { ".jpg", ".jpeg", ".tiff", ".png", ".gif", ".mp4", ".3gp", ".mov", ".avi", ".webp", ".heic", ".mp4" };
 		
 
 		public event EventHandler<Exception>? OnError;
@@ -49,13 +50,44 @@ namespace PicChron.Application
 				{
 					try
 					{
-						var exifDateTime = await (_exifDateTimeProvider.GetDateTime(file.FullName) ?? Task.FromResult<DateTime?>(null));
-						var regexDateTime = await (_regexDateTimeProvider.GetDateTime(file.FullName) ?? Task.FromResult<DateTime?>(null));
-
-						var dateTime = exifDateTime ?? regexDateTime;
+						// For video/media files, try media provider first; for images, try exif first
+						var isVideoFile = IsVideoFile(file.Extension.ToLower());
+						
+						DateTime? dateTime;
+						if (isVideoFile)
+						{
+							// Try media provider first for video files
+							dateTime = await (_mediaDateTimeProvider.GetDateTime(file.FullName) ?? Task.FromResult<DateTime?>(null));
+							// Fallback to exif and regex
+							if (dateTime == null)
+							{
+								dateTime = await (_exifDateTimeProvider.GetDateTime(file.FullName) ?? Task.FromResult<DateTime?>(null));
+							}
+							if (dateTime == null)
+							{
+								dateTime = await (_regexDateTimeProvider.GetDateTime(file.FullName) ?? Task.FromResult<DateTime?>(null));
+							}
+						}
+						else
+						{
+							// For image files, try exif first
+							dateTime = await (_exifDateTimeProvider.GetDateTime(file.FullName) ?? Task.FromResult<DateTime?>(null));
+							// Then try media provider (helpful for HEIC)
+							if (dateTime == null)
+							{
+								dateTime = await (_mediaDateTimeProvider.GetDateTime(file.FullName) ?? Task.FromResult<DateTime?>(null));
+							}
+							// Finally try regex
+							if (dateTime == null)
+							{
+								dateTime = await (_regexDateTimeProvider.GetDateTime(file.FullName) ?? Task.FromResult<DateTime?>(null));
+							}
+						}
 
 						if (dateTime is null)
 						{
+							// log file name and reason for skipping
+							Console.WriteLine($"Skipping file: {file.FullName}. Reason: No date/time information found.");
 							continue;
 						}
 
@@ -88,6 +120,12 @@ namespace PicChron.Application
 				default:
 					return directory.GetFiles("*.*", SearchOption.TopDirectoryOnly);
 			}
+		}
+
+		private bool IsVideoFile(string extension)
+		{
+			var videoExtensions = new[] { ".mp4", ".3gp", ".mov", ".avi", ".webp", ".mkv", ".flv", ".wmv", ".m4v" };
+			return videoExtensions.Contains(extension);
 		}
 
 		private void CreateDirectoryIfNotExists(string destDir)
