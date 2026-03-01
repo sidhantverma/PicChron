@@ -6,6 +6,15 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<StartupObject>PicChron.Program</StartupObject>
+		
+		<!-- Assembly metadata for intro text -->
+		<AssemblyName>PicChron</AssemblyName>
+		<Product>PicChron</Product>
+		<Description>Photo Chronological Organizer - Sort photos and videos by date</Description>
+		<Version>1.0.0</Version>
+		<AssemblyVersion>1.0.0</AssemblyVersion>
+		<FileVersion>1.0.0</FileVersion>
+		<Authors>Sidhant Verma</Authors>
 	</PropertyGroup>
 
 	<ItemGroup>

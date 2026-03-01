@@ -1,5 +1,4 @@
 ﻿using PicChron.Core;
-using System.Net.Sockets;
 
 namespace PicChron.Application
 {
@@ -16,7 +15,7 @@ namespace PicChron.Application
 		private int _filesProcessed;
 
 		public string[] _validMediaFileExtensions =
-			new string[] { ".jpg", ".jpeg", ".tiff", ".png", ".gif", ".mp4", ".3gp", ".mov", ".avi", ".webp", ".heic", ".mp4" };
+			new string[] { ".jpg", ".jpeg", ".tiff", ".png", ".gif", ".mp4", ".3gp", ".mov", ".avi", ".webp", ".heic", ".heif", ".mkv", ".flv", ".wmv", ".m4v" };
 		
 
 		public event EventHandler<Exception>? OnError;

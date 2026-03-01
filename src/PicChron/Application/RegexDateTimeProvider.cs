@@ -5,11 +5,14 @@ namespace PicChron.Application
 {
 	public class RegexDateTimeProvider : IDateTimeProvider
 	{
-
 		private readonly IDateTimeValidator _dateTimeValidator;
 		private readonly IFileInfoProvider _fileInfoProvider;
 
-		private readonly Regex _regex = new Regex(@"(\d{8})");
+		/// <summary>
+		/// Regex pattern to match YYYYMMDD format (8 consecutive digits) in filenames.
+		/// This pattern is compiled for better performance.
+		/// </summary>
+		private static readonly Regex DatePattern = new Regex(@"(\d{8})", RegexOptions.Compiled);
 
 		public RegexDateTimeProvider()
 		{
@@ -27,12 +30,12 @@ namespace PicChron.Application
 		{
 			var fileName = _fileInfoProvider.GetFileName(filePath);
 
-			if (!_regex.IsMatch(fileName))
+			if (!DatePattern.IsMatch(fileName))
 			{
 				return null;
 			}
 
-			var dateString = _regex.Match(fileName).Groups[0].Value;
+			var dateString = DatePattern.Match(fileName).Groups[0].Value;
 
 			var result = await Task.Run(() =>
 			{
