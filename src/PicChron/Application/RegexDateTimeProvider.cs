@@ -39,11 +39,10 @@ namespace PicChron.Application
 
 			var result = await Task.Run(() =>
 			{
-				bool isParsed = false;
 				try
 				{
-					isParsed = DateTime.TryParseExact(dateString, "yyyyMMdd", null, System.Globalization.DateTimeStyles.None, out var dateTimeParsed);
-					if (isParsed && _dateTimeValidator.IsValidYear(dateTimeParsed))
+					if (DateTime.TryParseExact(dateString, "yyyyMMdd", null, System.Globalization.DateTimeStyles.None, out var dateTimeParsed) &&
+						_dateTimeValidator.IsValidYear(dateTimeParsed))
 					{
 						return (DateTime?)dateTimeParsed;
 					}

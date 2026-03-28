@@ -74,7 +74,18 @@ namespace PicChron
 
 			Console.WriteLine("\nPress 'Y' to start sorting or any other key to cancel.");
 
-			if (Console.ReadKey(true).Key == ConsoleKey.Y)
+			bool shouldProceed;
+			if (options.SkipConfirmation)
+			{
+				Console.WriteLine("(Skipping confirmation - proceeding automatically)");
+				shouldProceed = true;
+			}
+			else
+			{
+				shouldProceed = Console.ReadKey(true).Key == ConsoleKey.Y;
+			}
+
+			if (shouldProceed)
 			{
 				await picChroner.StartSorting();
 				return ExitCodeSuccess;

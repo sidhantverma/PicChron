@@ -23,5 +23,8 @@ namespace PicChron.Core
 
 		[Option('r', Required = false, Default = false)]
 		public bool RewriteFileAccessAndWriteTime { get; set; }
+
+		[Option("skip-confirmation", Required = false, Default = false)]
+		public bool SkipConfirmation { get; set; }
 	}
 }
